@@ -1,15 +1,14 @@
 import axios from 'axios';
 
-import { JSONRPCResponse } from '../types/jsonRPC';
 import { Device } from '../types/device';
-import { Channel } from '../types/channel';
+import { JSONRPCResponse } from '../types/json-rpc';
 import { LinkParamset } from '../types/linkParamset';
-
+import { traverse } from './utils';
 
 export class HomematicSDK {
   private _sessionId: string;
   public host: string;
-  public interface: string = "HmIP-RF";
+  public interface = 'HmIP-RF';
   public useSSL = false;
 
   private get url() {
@@ -45,11 +44,12 @@ export class HomematicSDK {
   public async listDevices() {
     return await this.call<Device[]>('Device.listAllDetail');
   }
-  public async getLinkParamset(senderAddress: string, reciverAddress: string) {
-    return await this.call<LinkParamset>("Interface.getParamset", {
-      "interface": this.interface,
-      "address": reciverAddress,
-      "paramsetKey": senderAddress,
+
+  public async getLinkParamset(senderAddress: string, receiverAddress: string) {
+    return await this.call<LinkParamset>('Interface.getParamset', {
+      interface: this.interface,
+      address: receiverAddress,
+      paramsetKey: senderAddress,
     });
   }
 
@@ -79,12 +79,6 @@ export class HomematicSDK {
     }
 
     // Workaround
-    return JSON.parse(JSON.stringify(result), (_key, value) => {
-      if (value === 'true')
-        return true
-      if (value === 'false')
-        return false
-      return value
-    });
+    return JSON.parse(JSON.stringify(result), (_key, value) => traverse(value));
   }
 }

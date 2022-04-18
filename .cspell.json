@@ -23,7 +23,13 @@
     "sandboxed",
     "transpiled",
     "typedoc",
-    "untracked"
+    "untracked",
+    "paramset",
+    "logable",
+    "eventable",
+    "OFFDELAY",
+    "ONDELAY",
+    "MULTIEXECUTE"
   ],
   "flagWords": [],
   "ignorePaths": [

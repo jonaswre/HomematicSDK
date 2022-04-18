@@ -1,7 +1,7 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
-import { JSONRPCError, JSONRPCResponse } from './types/jsonRPC';
+import { JSONRPCError, JSONRPCResponse } from './types/json-rpc';
 
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(axios);

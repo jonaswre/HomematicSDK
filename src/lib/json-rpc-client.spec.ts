@@ -4,14 +4,109 @@ import { mockHM } from '../mock_utils';
 
 import { HomematicSDK } from './json-rpc-client';
 
-mockHM('http://192.168.50.10/api/homematic.cgi', 'Session.login', {
-    username: 'Admin',
-    password: 'Test',
-}).reply(200, 'SessionID');
+test('login failed', async (t) => {
+  //Setup CCU Response
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.login',
+    {
+      username: 'Admin',
+      password: 'WrongPassword',
+    },
+    null,
+    {
+      name: 'JSONRPCError',
+      code: 501,
+      message: 'invalid credentials or too many sessions',
+    }
+  );
 
-test('login', async (t) => {
-    const client = new HomematicSDK();
-    client.host = '192.168.50.10';
-    const response = await client.login('Admin', 'Test');
-    t.deepEqual(response, 'SessionID');
+  const client = new HomematicSDK();
+  client.host = 'ccu';
+
+  await t.throwsAsync(client.login('Admin', 'WrongPassword'), {
+    instanceOf: Error,
+    message: 'invalid credentials or too many sessions',
+  });
+});
+
+test('login success', async (t) => {
+  //Setup CCU Response
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.login',
+    {
+      username: 'Admin',
+      password: 'CorrectPassword',
+    },
+    'SessionId'
+  );
+
+  const client = new HomematicSDK();
+  client.host = 'ccu';
+
+  await client.login('Admin', 'CorrectPassword');
+  t.deepEqual(client.sessionId, 'SessionId');
+});
+
+test('renewSession', async (t) => {
+  //Setup CCU Response
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.login',
+    {
+      username: 'Admin',
+      password: 'CorrectPassword',
+    },
+    'SessionId'
+  );
+
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.renew',
+    {
+      _session_id_: 'SessionId',
+    },
+    'NewSessionId'
+  );
+
+  const client = new HomematicSDK();
+  client.host = 'ccu';
+
+  await client.login('Admin', 'CorrectPassword');
+  t.deepEqual(client.sessionId, 'SessionId');
+
+  await client.renewSession();
+  t.deepEqual(client.sessionId, 'NewSessionId');
+});
+
+test('logout', async (t) => {
+  //Setup CCU Response
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.login',
+    {
+      username: 'Admin',
+      password: 'CorrectPassword',
+    },
+    'SessionId'
+  );
+
+  mockHM(
+    'http://ccu/api/homematic.cgi',
+    'Session.logout',
+    {
+      _session_id_: 'SessionId',
+    },
+    true
+  );
+
+  const client = new HomematicSDK();
+  client.host = 'ccu';
+
+  await client.login('Admin', 'CorrectPassword');
+  t.deepEqual(client.sessionId, 'SessionId');
+
+  await client.logout();
+  t.deepEqual(client.sessionId, undefined);
 });

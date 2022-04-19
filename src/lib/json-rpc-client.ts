@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Device } from '../types/device';
 import { JSONRPCResponse } from '../types/json-rpc';
 import { LinkParamset } from '../types/linkParamset';
+
 import { traverse } from './utils';
 
 export class HomematicSDK {
